@@ -38,4 +38,11 @@ This is a FastAPI-based API designed to manage vulnerabilities through CRUD oper
     - Returns the removed vulnerability.
     - Potential status codes: `400, 404, 500`.
 
+# /populate-db
+    - Populates the db with two dummy vulnerabilities.
+    - Required to parse the admin api key and role=admin
+
 # USAGE
+To run the app .env file needs to be created and API keys assigned for example:
+ADMIN_API_KEY=admin_secret_api_key
+USER_API_KEY=user_secret_api_key

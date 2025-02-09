@@ -1,0 +1,5 @@
+[flake8]
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,env,venv,.venv,.tox,.eggs,*.egg-info
+max-line-length = 110
+per-file-ignores = 
+env.py: F401, E402
