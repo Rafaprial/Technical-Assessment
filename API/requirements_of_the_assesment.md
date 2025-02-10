@@ -1,10 +1,16 @@
 # Pending
  - Loggers
- - Check all the different security mesures
- - Apply corresponding API KEY to each router
+ - Check all the different security mesures 👌
+ - Apply corresponding API KEY to each router 👌
+ - Protect against DDOS 👌
  - Test
-  . Unit test & regresion
- - Study DDOS protection
+   - Unit test 
+   - Regresion test
+ - Study DDOS protection 👌
+ - Add Exceptions:
+    Vulnerability with certain cve exists
+    Accesing without API key or other related things
+    Not Found
 
 
 
@@ -34,7 +40,13 @@
      - Returns the vulnerability by CVE.
      - Potential status codes: `400, 404, 500`.
  - `/vulnerability`
-     - Retrieves all vulnerabilities if any filter is applied.
+    - Retrieves all vulnerabilities if any filter is applied.
+    - Params:
+        - `limit` -> How much data entries retreives. MAX 100
+        - `skip` -> Pagination.
+        Example:
+            ?limit=1&skip=19 -> it will retreive the entry number 20 from the DB
+     
      - It must allow filtering by the following parameters:
          - `Title`: contains.
          - `Max/Min Criticity`: values in between.

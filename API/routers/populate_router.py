@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database.database_setup import SessionLocal
 from models.vulnerabilities import Vulnerability
@@ -37,13 +37,17 @@ def populate_database(db: Session):
 @router.post("/populate-db")
 async def populate_db(
     request: Request,
-    api_key: str = Depends(api_key_required)
+    role: str = Depends(api_key_required)
 ):
-    with SessionLocal() as db:
-        # Verify if already populated
-        existing_vulnerabilities = db.query(Vulnerability).first()
-        if existing_vulnerabilities:
-            return {"message": "Database already populated!"}
-        else:
-            populate_database(db)
-            return {"message": "Database populated successfully!"}
+    if role == "admin":
+        with SessionLocal() as db:
+            # Verify if already populated
+            existing_vulnerabilities = db.query(Vulnerability).first()
+            if existing_vulnerabilities:
+                return {"message": "Database already populated!"}
+            else:
+                populate_database(db)
+                return {"message": "Database populated successfully!"}
+    else:
+        raise HTTPException(status_code=403, detail="Only admin can populate the db!")
+

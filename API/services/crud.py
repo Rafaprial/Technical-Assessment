@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from models.vulnerabilities import Vulnerability
 from schemas.vulnerabilities_schemas import VulnerabilityCreate
 from datetime import datetime
+
+MAX_LIMIT = 100
 
 # Create a new vulnerability
 def create_vulnerability(db: Session, vulnerability: VulnerabilityCreate):
@@ -41,6 +44,12 @@ def get_vulnerability_by_cve(db: Session, cve: str):
 
 # Get all vulnerabilities with optional filtering by title and criticality
 def get_vulnerabilities(db: Session, title: str = None, min_criticality: int = None, max_criticality: int = None, skip: int = 0, limit: int = 10):
+    if limit > MAX_LIMIT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Limit cannot exceed {MAX_LIMIT}"
+        )
+        #Change HTTPException to personal exception
     query = db.query(Vulnerability).filter(Vulnerability.is_deleted == False)
     
     if title:
