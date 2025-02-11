@@ -4,6 +4,7 @@ from database.database_setup import SessionLocal
 from models.vulnerabilities import Vulnerability
 from datetime import datetime
 from decorators.auth import api_key_required
+from utils.logger import logger
 
 router = APIRouter()
 
@@ -44,10 +45,13 @@ async def populate_db(
             # Verify if already populated
             existing_vulnerabilities = db.query(Vulnerability).first()
             if existing_vulnerabilities:
+                logger.error("Database already populated!")
                 return {"message": "Database already populated!"}
             else:
                 populate_database(db)
+                logger.info("Database populated successfully!")
                 return {"message": "Database populated successfully!"}
     else:
+        logger.error("A non-admin user tried to populate the db")
         raise HTTPException(status_code=403, detail="Only admin can populate the db!")
 
