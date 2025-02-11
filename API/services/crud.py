@@ -5,6 +5,7 @@ from schemas.vulnerabilities_schemas import VulnerabilityCreate
 from datetime import datetime
 
 from utils.logger import logger
+from exceptions.exceptions_handlers import VulnerabilityNotFoundException
 
 MAX_LIMIT = 100
 
@@ -81,5 +82,6 @@ def soft_delete_vulnerability(db: Session, cve: str):
         db.refresh(db_vulnerability)
         logger.info(f"Vulnerability with CVE {cve} soft deleted")
         return db_vulnerability
-    logger.error(f"Vulnerability with CVE {cve} not found. Could not be Deleted")
-    return None  # Return None if the vulnerability is not found
+    else:
+        logger.error(f"Vulnerability with CVE {cve} not found. Could not be Deleted")
+        raise VulnerabilityNotFoundException(status_code=404, detail=f"Vulnerability with CVE {cve} not found. Could not be Deleted")
