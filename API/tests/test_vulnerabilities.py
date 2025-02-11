@@ -8,7 +8,7 @@ import os
 load_dotenv()
 
 # Get API key from environment variables
-ADMIN_API_KEY = "admin_secret_api_key"
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY")
 
 HEADERS = {"x-api-key": ADMIN_API_KEY}
 

@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    env:
+      ADMIN_API_KEY: "secret_api_key"
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
