@@ -35,7 +35,7 @@ class TestVulnerabilities(unittest.TestCase):
     def test_get_vulnerability(self):
         # This test assumes that the vulnerability with the provided CVE doesn't exist.
         response = self.client.get("/vulnerability/CVE-0000-1234", headers=self.headers)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
 
     def test_delete_vulnerability(self):
         # This tests deletion for a non-existent vulnerability.
