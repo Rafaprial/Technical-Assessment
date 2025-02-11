@@ -1,16 +1,19 @@
-# Pending
- - Loggers
+# Finished
+ - Loggers 👌
  - Check all the different security mesures 👌
  - Apply corresponding API KEY to each router 👌
- - Protect against DDOS 👌
- - Test
-   - Unit test 
-   - Regresion test
  - Study DDOS protection 👌
+ - Protect against DDOS 👌
+
+# Pending
+ - Docker
+ - Test👌
+   - Unit test 👌
+   - Regresion test 👌
  - Add Exceptions:
-    Vulnerability with certain cve exists
-    Accesing without API key or other related things
-    Not Found
+    Vulnerability with certain cve exists 👌
+ - LookUp possible better large datasets handlers
+    - Yield?
 
 
 
