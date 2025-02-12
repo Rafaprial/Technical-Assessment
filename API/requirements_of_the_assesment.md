@@ -4,19 +4,17 @@
  - Apply corresponding API KEY to each router 👌
  - Study DDOS protection 👌
  - Protect against DDOS 👌
-
-# Pending
- - Docker
  - Test👌
    - Unit test 👌
    - Regresion test 👌
  - Add Exceptions:
     Vulnerability with certain cve exists 👌
- - LookUp possible better large datasets handlers
-    - Yield?
 
-
-
+# Pending
+ - Docker
+ - pyodbc fast_executemany
+ - Check POST for creating multiple CVE's
+ - Documentation
 
 
 
