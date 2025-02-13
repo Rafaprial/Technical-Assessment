@@ -1,49 +1,93 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from models.vulnerabilities import Vulnerability
-from schemas.vulnerabilities_schemas import VulnerabilityCreate
+from schemas.vulnerabilities_schemas import VulnerabilityCreate, VulnerabilitySummaryOfCreationResponse
 from datetime import datetime
+import re
 
 from utils.logger import logger
 from exceptions.exceptions_handlers import VulnerabilityNotFoundException
 
 MAX_LIMIT = 100
 
-# Create a new vulnerability
-def create_vulnerability(db: Session, vulnerability: VulnerabilityCreate):
-    db_vulnerability = db.query(Vulnerability).filter(Vulnerability.cve == vulnerability.cve).first()
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
+import re
+from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+def create_vulnerability(db: Session, vulnerabilities: list[VulnerabilityCreate]):
+    valid_vulnerabilities = []
+    invalid_cves = set()
     
-    if db_vulnerability:
-        if db_vulnerability.is_deleted:  # If the CVE is soft deleted, "restore" it
-            db_vulnerability.is_deleted = False
-            db_vulnerability.deleted_at = None  # Remove the deleted timestamp
-            db_vulnerability.title = vulnerability.title
-            db_vulnerability.criticality = vulnerability.criticality
-            db_vulnerability.description = vulnerability.description
-            db_vulnerability.updated_at = datetime.utcnow()
-            db.commit()
-            db.refresh(db_vulnerability)
-            logger.info(f"Vulnerability with CVE {vulnerability.cve} restored")
-            return db_vulnerability
-        
+    # Validate CVE format
+    cve_pattern = re.compile(r"^CVE-\d{4}-\d{4,}$")
+    for v in vulnerabilities:
+        if not cve_pattern.match(v.cve):
+            invalid_cves.add(v.cve)
         else:
-            logger.error(f"Vulnerability with CVE {vulnerability.cve} already exists")
-            raise HTTPException(status_code=400, detail="Vulnerability with this CVE already exists")
+            valid_vulnerabilities.append(v)
+
+    # Process body in smaller parts
+    cve_list = [v.cve for v in valid_vulnerabilities]
+    existing_vulnerabilities = set()
+    batch_size = 5000
+
+    for i in range(0, len(cve_list), batch_size):
+        batch = cve_list[i:i + batch_size]
+        existing_vulnerabilities.update(
+            v.cve for v in db.query(Vulnerability.cve)
+            .filter(Vulnerability.cve.in_(batch))
+            .yield_per(1000)  # Yield to not break the memory
+        )
+
+    # Bulk insert
+    new_vulnerabilities = [
+        {
+            "cve": v.cve,
+            "title": v.title,
+            "criticality": v.criticality,
+            "description": v.description,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "is_deleted": False
+        }
+        for v in valid_vulnerabilities if v.cve not in existing_vulnerabilities
+    ]
+
     
-    # If the CVE doesn't exist, create a new vulnerability
-    new_vulnerability = Vulnerability(
-        cve=vulnerability.cve,
-        title=vulnerability.title,
-        criticality=vulnerability.criticality,
-        description=vulnerability.description,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+    try:
+        if new_vulnerabilities:
+            insert_batch_size = 10000  # Insert every 10k rows
+            for i in range(0, len(new_vulnerabilities), insert_batch_size):
+                db.bulk_insert_mappings(Vulnerability, new_vulnerabilities[i:i + insert_batch_size])
+                db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Database error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail="A database error occurred.")
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+    logger.info(f"Created {len(new_vulnerabilities)} new vulnerabilities, "
+                f"skipped {len(existing_vulnerabilities)}, "
+                f"invalid {len(invalid_cves)} CVEs")
+
+    return VulnerabilitySummaryOfCreationResponse(
+        created_count=len(new_vulnerabilities),
+        restored_count=0,
+        skipped_cves=len(existing_vulnerabilities),
+        invalid_cves=list(invalid_cves)
     )
-    db.add(new_vulnerability)
-    logger.info(f"Vulnerability with CVE {vulnerability.cve} created")
-    db.commit()
-    db.refresh(new_vulnerability)
-    return new_vulnerability
+
+
+
+
 
 # Get a vulnerability by CVE
 def get_vulnerability_by_cve(db: Session, cve: str):

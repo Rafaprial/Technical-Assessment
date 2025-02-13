@@ -1,7 +1,8 @@
+from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from services.crud import create_vulnerability, get_vulnerability_by_cve, get_vulnerabilities, soft_delete_vulnerability
-from schemas.vulnerabilities_schemas import VulnerabilityCreate, VulnerabilityResponse
+from schemas.vulnerabilities_schemas import VulnerabilityCreate, VulnerabilityResponse, VulnerabilitySummaryOfCreationResponse
 from decorators.auth import api_key_required
 from database.database_setup import SessionLocal
 from decorators.limiter import limiter
@@ -19,15 +20,19 @@ def get_db():
     finally:
         db.close()
 
-
-# Create a new vulnerability
-@router.post("/vulnerability", response_model=VulnerabilityResponse)
+# Create vulnerabilities
+@router.post("/vulnerability", response_model=VulnerabilitySummaryOfCreationResponse)
 @limiter.limit("10/minute")
-async def create_vulnerability_endpoint(request:Request, vulnerability: VulnerabilityCreate, db: Session = Depends(get_db), role: str = Depends(api_key_required)):
+async def create_vulnerability_endpoint(
+    request: Request,
+    vulnerabilities: List[VulnerabilityCreate],
+    db: Session = Depends(get_db),
+    role: str = Depends(api_key_required)
+):
     if role == "admin":
-        return create_vulnerability(db=db, vulnerability=vulnerability)
+        return create_vulnerability(db=db, vulnerabilities=vulnerabilities)
     else:
-        logger.error(f"A non-admin user tried to create a vulnerability")
+        logger.error("A non-admin user tried to create vulnerabilities")
         raise HTTPException(status_code=403, detail="Only admin can create vulnerabilities!")
 
 # Get a vulnerability by CVE
