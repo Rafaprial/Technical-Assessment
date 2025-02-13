@@ -17,54 +17,85 @@ import re
 from datetime import datetime
 import logging
 
-logger = logging.getLogger(__name__)
 
 def create_vulnerability(db: Session, vulnerabilities: list[VulnerabilityCreate]):
+    """This method has a potential problem as more vulnerabilities are added
+    to the database it will take longer to check if the CVE is already in
+    the database, this can be easily fixed by implementing S3 and querying through athena"""
+
+    """Also to take in mind as better the computer and DB better the performance by proccesing more data at the same time"""
+
+    """Multiple threads will also help to improve the performance of the system"""
+    
     valid_vulnerabilities = []
     invalid_cves = set()
-    
-    # Validate CVE format
+    unique_cves = set()
+        
     cve_pattern = re.compile(r"^CVE-\d{4}-\d{4,}$")
     for v in vulnerabilities:
         if not cve_pattern.match(v.cve):
             invalid_cves.add(v.cve)
-        else:
+        elif v.cve not in unique_cves \
+            and v.criticality is not None and 0 <= v.criticality <= 10 \
+            and v.title and len(v.title) <= 30 \
+            and v.description and len(v.description) <= 100:
+            
             valid_vulnerabilities.append(v)
+            unique_cves.add(v.cve)  # Track unique CVEs
 
-    # Process body in smaller parts
+    logger.info(f"Validated {len(valid_vulnerabilities)} vulnerabilities")
+
+    # Process in smaller batches
     cve_list = [v.cve for v in valid_vulnerabilities]
-    existing_vulnerabilities = set()
+    existing_vulnerabilities_map = {}
     batch_size = 5000
 
     for i in range(0, len(cve_list), batch_size):
         batch = cve_list[i:i + batch_size]
-        existing_vulnerabilities.update(
-            v.cve for v in db.query(Vulnerability.cve)
-            .filter(Vulnerability.cve.in_(batch))
-            .yield_per(1000)  # Yield to not break the memory
-        )
+        existing_records = db.query(Vulnerability.cve, Vulnerability.is_deleted) \
+            .filter(Vulnerability.cve.in_(batch)) \
+            .yield_per(1000)  # Yield to prevent memory overload
 
-    # Bulk insert
-    new_vulnerabilities = [
-        {
-            "cve": v.cve,
-            "title": v.title,
-            "criticality": v.criticality,
-            "description": v.description,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
-            "is_deleted": False
-        }
-        for v in valid_vulnerabilities if v.cve not in existing_vulnerabilities
-    ]
+        for cve, is_deleted in existing_records:
+            existing_vulnerabilities_map[cve] = is_deleted
 
-    
+    # Lists for bulk insert and restore
+    new_vulnerabilities = []
+    restored_vulnerabilities = []
+
+    for v in valid_vulnerabilities:
+        if v.cve in existing_vulnerabilities_map:
+            if existing_vulnerabilities_map[v.cve]:  # If is_deleted=True, restore it
+                restored_vulnerabilities.append({
+                    "cve": v.cve,
+                    "title": v.title,
+                    "criticality": v.criticality,
+                    "description": v.description,
+                    "updated_at": datetime.utcnow(),
+                    "is_deleted": False  # Restore it
+                })
+        else:  # New record, add for insertion
+            new_vulnerabilities.append({
+                "cve": v.cve,
+                "title": v.title,
+                "criticality": v.criticality,
+                "description": v.description,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "is_deleted": False
+            })
+
+    # Bulk insert and update operations
     try:
         if new_vulnerabilities:
-            insert_batch_size = 10000  # Insert every 10k rows
+            insert_batch_size = 10000
             for i in range(0, len(new_vulnerabilities), insert_batch_size):
                 db.bulk_insert_mappings(Vulnerability, new_vulnerabilities[i:i + insert_batch_size])
-                db.commit()
+        
+        if restored_vulnerabilities:
+            db.bulk_update_mappings(Vulnerability, restored_vulnerabilities)
+
+        db.commit()
     except IntegrityError as e:
         db.rollback()
         logger.error(f"Database error occurred: {str(e)}")
@@ -75,18 +106,16 @@ def create_vulnerability(db: Session, vulnerabilities: list[VulnerabilityCreate]
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
     logger.info(f"Created {len(new_vulnerabilities)} new vulnerabilities, "
-                f"skipped {len(existing_vulnerabilities)}, "
+                f"restored {len(restored_vulnerabilities)}, "
+                f"skipped {len(existing_vulnerabilities_map) - len(restored_vulnerabilities)}, "
                 f"invalid {len(invalid_cves)} CVEs")
 
     return VulnerabilitySummaryOfCreationResponse(
         created_count=len(new_vulnerabilities),
-        restored_count=0,
-        skipped_cves=len(existing_vulnerabilities),
-        invalid_cves=list(invalid_cves)
+        restored_count=len(restored_vulnerabilities),
+        skipped_cves=len(existing_vulnerabilities_map) - len(restored_vulnerabilities),
+        invalid_cves=len(invalid_cves)
     )
-
-
-
 
 
 # Get a vulnerability by CVE
