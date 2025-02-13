@@ -85,38 +85,38 @@ This is a FastAPI-based API designed to manage vulnerabilities through CRUD oper
      - Potential status codes: `400, 404, 500`.
 
 # USAGE
-**Run locally without docker**
-*Requirements*
+**Run locally without docker**  
+**Requirements**  
 Python 3.13
 
-*Inside API folder the .env file should be created and secrets be placed*
-Example of .env
-ADMIN_API_KEY=admin_secret_api_key
-USER_API_KEY=user_secret_api_key
-
-*From inside API folder the requirements should be installed*
-*Nice practice is to create a enviroment to hold all the required dependencies*
-python -m venv env
-
-*Once created to active it is through*
-source ~/env/Scripts/activate
-
-*Then to install requirements*
-pip install -r requirements.txt
-
-*To run locally the API while being in /API/*
-uvicorn main:app --reload
-
-**To run in Docker**
-*Requirements*
-Docker Desktop
-
-*Inside API folder the .env file should be created and secrets be placed. To be used also it needs to be removed from .gitignore*
-Example of .env
-ADMIN_API_KEY=admin_secret_api_key
-USER_API_KEY=user_secret_api_key
-
-
-**Commands**
-docker build -t vulnerabilities_api .
-docker run --env-file .env -p 8000:8000 vulnerabilities_api
+*Inside API folder the .env file should be created and secrets be placed*  
+Example of .env  
+ADMIN_API_KEY=admin_secret_api_key    
+USER_API_KEY=user_secret_api_key  
+  
+*From inside API folder the requirements should be installed*  
+*Nice practice is to create a enviroment to hold all the required dependencies*  
+python -m venv env  
+  
+*Once created to active it is through*  
+source ~/env/Scripts/activate  
+  
+*Then to install requirements*  
+pip install -r requirements.txt  
+  
+*To run locally the API while being in /API/*  
+uvicorn main:app --reload  
+  
+**To run in Docker**  
+*Requirements*  
+Docker Desktop  
+  
+*Inside API folder the .env file should be created and secrets be placed. To be used also it needs to be removed from .gitignore*  
+Example of .env  
+ADMIN_API_KEY=admin_secret_api_key  
+USER_API_KEY=user_secret_api_key  
+  
+  
+**Commands**  
+docker build -t vulnerabilities_api .  
+docker run --env-file .env -p 8000:8000 vulnerabilities_api  
