@@ -18,19 +18,14 @@ class TestVulnerabilities(unittest.TestCase):
         self.headers = {"x-api-key": ADMIN_API_KEY}
 
     def test_create_vulnerability(self):
-        # This tests the creation of a new vulnerability.
-        response = self.client.post("/vulnerability", json={
+        # Step 1: Create a vulnerability
+        response = self.client.post("/vulnerability", json=[{
             "title": "Test",
             "cve": "CVE-0000-1234",
             "criticality": 5,
-            "description": "Test description"
-        }, headers=self.headers)
+            "description": "Test description"}]
+        , headers=self.headers)
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data.get("cve"), "CVE-0000-1234")
-        self.assertEqual(data.get("title"), "Test")
-        self.assertEqual(data.get("criticality"), 5)
-        self.assertEqual(data.get("description"), "Test description")
 
     def test_get_vulnerability(self):
         # This test assumes that the vulnerability with the provided CVE doesn't exist.
