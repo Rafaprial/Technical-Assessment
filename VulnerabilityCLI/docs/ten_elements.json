@@ -1,0 +1,65 @@
+{
+    "$schema": "vulnerability_schema.json",
+    "vulnerabilities": [
+        {
+            "title": "Vulnerability 1",
+            "description": "Description for vulnerability 1",
+            "cve": "CVE-2023-2564",
+            "criticality": 3
+        },
+        {
+            "title": "Vulnerability 2",
+            "description": "Description for vulnerability 2",
+            "cve": "CVE-2023-1740",
+            "criticality": 6
+        },
+        {
+            "title": "Vulnerability 3",
+            "description": "Description for vulnerability 3",
+            "cve": "CVE-2023-3955",
+            "criticality": 7
+        },
+        {
+            "title": "Vulnerability 4",
+            "description": "Description for vulnerability 4",
+            "cve": "CVE-2023-2945",
+            "criticality": 2
+        },
+        {
+            "title": "Vulnerability 5",
+            "description": "Description for vulnerability 5",
+            "cve": "CVE-2023-6875",
+            "criticality": 6
+        },
+        {
+            "title": "Vulnerability 6",
+            "description": "Description for vulnerability 6",
+            "cve": "CVE-2023-6876",
+            "criticality": 5
+        },
+        {
+            "title": "Vulnerability 7",
+            "description": "Description for vulnerability 7",
+            "cve": "CVE-2023-6877",
+            "criticality": 4
+        },
+        {
+            "title": "Vulnerability 8",
+            "description": "Description for vulnerability 8",
+            "cve": "CVE-2023-6888",
+            "criticality": 10
+        },
+        {
+            "title": "Vulnerability 9",
+            "description": "Description for vulnerability 9",
+            "cve": "CVE-2023-6879",
+            "criticality": 2
+        },
+        {
+            "title": "Vulnerability 10",
+            "description": "Description for vulnerability 10",
+            "cve": "CVE-2023-6811",
+            "criticality": 1
+        }
+    ]
+}
