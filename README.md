@@ -219,6 +219,6 @@ This is the Schema for the creation of the JSON File.
 *To run it with Docker*
 
 
-docker build -t vulnerability-cli -f VulnerabilityCLI/Dockerfile VulnerabilityCLI/
+```docker build -t vulnerability-cli -f VulnerabilityCLI/Dockerfile VulnerabilityCLI/```
 
-docker run --rm -v {route_to_project} vulnerability-cli --file {/app/json/one_element.json} --url {url_endpoint} --api-key {api_key}
+```docker run --rm -v {route_to_project} vulnerability-cli --file {/app/json/one_element.json} --url {url_endpoint} --api-key {api_key}```
