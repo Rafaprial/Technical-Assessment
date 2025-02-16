@@ -38,10 +38,10 @@ jobs:
           dotnet-version: '9.0'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore ./VulnerabilityCLI/VulnerabilityCLI.csproj
 
       - name: Build CLI project
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ./VulnerabilityCLI/VulnerabilityCLI.csproj --configuration Release --no-restore
 
       - name: Run CLI tests
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test ./VulnerabilityCLI.Tests/VulnerabilityCLI.Tests.csproj --configuration Release --no-build --verbosity normal
