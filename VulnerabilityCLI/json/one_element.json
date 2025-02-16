@@ -1,0 +1,11 @@
+{
+    "$schema": "vulnerability_schema.json",
+    "vulnerabilities": [
+        {
+            "title": "Vulnerability 1",
+            "description": "Description for vulnerability 1",
+            "cve": "CVE-2023-2564",
+            "criticality": 3
+        }
+    ]
+}
