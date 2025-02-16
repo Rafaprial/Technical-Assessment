@@ -3,16 +3,17 @@ name: Run Tests
 on: [push, pull_request]
 
 jobs:
-  test:
+  # API Tests (Python)
+  api-tests:
     runs-on: ubuntu-latest
     env:
       ADMIN_API_KEY: "secret_api_key"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.13.2'
 
@@ -21,5 +22,26 @@ jobs:
           pip install -r API/requirements.txt
           pip install pytest
 
-      - name: Run tests
+      - name: Run API tests
         run: pytest API/tests/
+
+  # CLI Tests (.NET)
+  cli-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build CLI project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run CLI tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
